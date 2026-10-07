@@ -1,0 +1,16 @@
+# Python
+__pycache__/
+*.pyc
+
+# Environment and secrets
+.env
+.env.*
+*.secret
+
+# Generated reports
+output/incident_report.json
+output/incident_job.log
+output/incident_dashboard.html
+
+# Claude local files
+.claude/settings.local.json

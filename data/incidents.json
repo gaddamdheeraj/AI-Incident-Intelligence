@@ -1,0 +1,47 @@
+[
+  {
+    "incident_id": "INCIDENT-001",
+    "severity": "High",
+    "category": "Security",
+    "issue": "Multiple failed login attempts detected",
+    "status": "Open",
+    "description": "Several failed login attempts were detected for a user account.",
+    "resolution_time_minutes": 0
+  },
+  {
+    "incident_id": "INCIDENT-002",
+    "severity": "Medium",
+    "category": "Application",
+    "issue": "API response time increased",
+    "status": "Resolved",
+    "description": "API response time increased significantly during peak usage.",
+    "resolution_time_minutes": 45
+  },
+  {
+    "incident_id": "INCIDENT-003",
+    "severity": "High",
+    "category": "Application",
+    "issue": "API response time increased",
+    "status": "Resolved",
+    "description": "API response time increased again during peak usage.",
+    "resolution_time_minutes": 50
+  },
+  {
+    "incident_id": "INCIDENT-004",
+    "severity": "High",
+    "category": "Compliance",
+    "issue": "Access review evidence missing",
+    "status": "Open",
+    "description": "Required access review evidence is missing for a system account.",
+    "resolution_time_minutes": 0
+  },
+  {
+    "incident_id": "INCIDENT-005",
+    "severity": "Low",
+    "category": "Infrastructure",
+    "issue": "Disk usage warning",
+    "status": "Resolved",
+    "description": "Disk usage exceeded the warning threshold on a non-production server.",
+    "resolution_time_minutes": 20
+  }
+]
