@@ -79,5 +79,14 @@
     "status": "Open",
     "description": "Suspicious privileged account activity detected",
     "resolution_time_minutes": 0
+  },
+  {
+    "incident_id": "INCIDENT-010",
+    "severity": "High",
+    "category": "Security",
+    "issue": "Multiple failed login attempts detected from an unusual location",
+    "status": "Open",
+    "description": "Multiple failed login attempts detected from an unusual location",
+    "resolution_time_minutes": 0
   }
 ]
