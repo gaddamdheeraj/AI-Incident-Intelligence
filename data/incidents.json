@@ -43,5 +43,32 @@
     "status": "Resolved",
     "description": "Disk usage exceeded the warning threshold on a non-production server.",
     "resolution_time_minutes": 20
+  },
+  {
+    "incident_id": "INCIDENT-007",
+    "severity": "High",
+    "category": "Security",
+    "issue": "Multiple failed password reset attempts detected",
+    "status": "Open",
+    "description": "Multiple failed password reset attempts detected",
+    "resolution_time_minutes": 0
+  },
+  {
+    "incident_id": "INCIDENT-006",
+    "severity": "High",
+    "category": "Security",
+    "issue": "Multiple failed MFA attempts from unusual location",
+    "status": "Open",
+    "description": "Multiple failed MFA attempts from unusual location",
+    "resolution_time_minutes": 0
+  },
+  {
+    "incident_id": "INCIDENT-008",
+    "severity": "Medium",
+    "category": "Application",
+    "issue": "Database connection pool reached warning threshold",
+    "status": "Open",
+    "description": "Database connection pool reached warning threshold",
+    "resolution_time_minutes": 0
   }
 ]
