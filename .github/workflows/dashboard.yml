@@ -1,0 +1,50 @@
+name: Update Incident Dashboard
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "data/incidents.json"
+      - "incident_analysis.py"
+      - "dashboard_generator.py"
+      - "index.html"
+
+permissions:
+  contents: write
+
+jobs:
+  update-dashboard:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Generate incident report
+        run: python incident_analysis.py
+
+      - name: Generate dashboard
+        run: python dashboard_generator.py
+
+      - name: Copy dashboard to GitHub Pages
+        run: cp output/incident_dashboard.html index.html
+
+      - name: Commit updated dashboard
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add index.html
+
+          if git diff --cached --quiet; then
+            echo "No dashboard changes to commit."
+          else
+            git commit -m "Auto-update incident dashboard"
+            git push
+          fi
