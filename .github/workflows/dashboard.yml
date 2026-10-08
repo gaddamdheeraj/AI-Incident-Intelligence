@@ -28,6 +28,9 @@ jobs:
         with:
           python-version: "3.12"
 
+      - name: Create output folder
+        run: mkdir -p output
+
       - name: Generate incident report
         run: python incident_analysis.py
 
