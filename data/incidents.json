@@ -70,5 +70,14 @@
     "status": "Open",
     "description": "Database connection pool reached warning threshold",
     "resolution_time_minutes": 0
+  },
+  {
+    "incident_id": "INCIDENT-009",
+    "severity": "Critical",
+    "category": "Security",
+    "issue": "Suspicious privileged account activity detected",
+    "status": "Open",
+    "description": "Suspicious privileged account activity detected",
+    "resolution_time_minutes": 0
   }
 ]
