@@ -1,8 +1,11 @@
+
 import json
 from pathlib import Path
+from html import escape
 
-REPORT_FILE = Path("output/incident_report.json")
-DASHBOARD_FILE = Path("output/incident_dashboard.html")
+PROJECT_DIR = Path(__file__).resolve().parent
+REPORT_FILE = PROJECT_DIR / "output" / "incident_report.json"
+DASHBOARD_FILE = PROJECT_DIR / "output" / "incident_dashboard.html"
 
 
 def load_report():
@@ -10,310 +13,490 @@ def load_report():
         return json.load(file)
 
 
+def safe(value):
+    return escape(str(value))
+
+
 def generate_dashboard(report):
     metrics = report["dashboard_metrics"]
 
+    severity_colors = {
+        "Critical": "#7c3aed",
+        "High": "#dc2626",
+        "Medium": "#f59e0b",
+        "Low": "#16a34a"
+    }
+
+    category_colors = [
+        "#2563eb", "#0891b2", "#7c3aed",
+        "#d97706", "#16a34a"
+    ]
+
     severity_rows = ""
     for severity, count in report["severity_counts"].items():
+        color = severity_colors.get(severity, "#64748b")
         severity_rows += f"""
         <tr>
-            <td>{severity}</td>
-            <td>{count}</td>
+            <td><span class="dot" style="background:{color}"></span>
+                {safe(severity)}</td>
+            <td><strong>{count}</strong></td>
         </tr>
         """
 
     category_rows = ""
-    for category, count in report["category_counts"].items():
+    for index, (category, count) in enumerate(
+        report["category_counts"].items()
+    ):
+        color = category_colors[index % len(category_colors)]
         category_rows += f"""
         <tr>
-            <td>{category}</td>
-            <td>{count}</td>
+            <td><span class="dot" style="background:{color}"></span>
+                {safe(category)}</td>
+            <td><strong>{count}</strong></td>
         </tr>
         """
 
-    recurring_rows = ""
-    for issue, count in report["recurring_issues"].items():
-        recurring_rows += f"""
-        <tr>
-            <td>{issue}</td>
-            <td>{count}</td>
-        </tr>
+    def make_bars(data, colors):
+        total = max(sum(data.values()), 1)
+        result = ""
+
+        for index, (name, count) in enumerate(data.items()):
+            percentage = count / total * 100
+            color = colors[index % len(colors)]
+
+            result += f"""
+            <div class="bar-item">
+                <div class="bar-heading">
+                    <span>{safe(name)}</span>
+                    <strong>{count}</strong>
+                </div>
+                <div class="bar-track">
+                    <div class="bar-fill"
+                         style="width:{percentage:.1f}%;background:{color}">
+                    </div>
+                </div>
+            </div>
+            """
+
+        return result
+
+    severity_bars = make_bars(
+        report["severity_counts"],
+        [severity_colors.get(s, "#64748b")
+         for s in report["severity_counts"]]
+    )
+
+    category_bars = make_bars(
+        report["category_counts"],
+        category_colors
+    )
+
+    def make_table_rows(data):
+        if not data:
+            return '<tr><td colspan="2">No records identified</td></tr>'
+
+        return "".join(
+            f"<tr><td>{safe(name)}</td><td><strong>{count}</strong></td></tr>"
+            for name, count in data.items()
+        )
+
+    recurring_rows = make_table_rows(report["recurring_issues"])
+
+    security_rows = "".join(
+        f'<li><span class="alert-dot"></span>'
+        f'<strong>{safe(incident_id)}</strong> — requires investigation</li>'
+        for incident_id in report["security_concerns"]
+    ) or "<li>No security concerns identified</li>"
+
+    compliance_rows = "".join(
+        f'<li><span class="warning-dot"></span>'
+        f'<strong>{safe(incident_id)}</strong> — requires human review</li>'
+        for incident_id in report["compliance_concerns"]
+    ) or "<li>No compliance concerns identified</li>"
+
+    preventive_rows = "".join(
+        f"<li>{safe(action)}</li>"
+        for action in report["preventive_actions"]
+    ) or "<li>No preventive actions identified</li>"
+
+    cards = [
+        ("Total Issues", metrics["total_issues"], "blue"),
+        ("Open Issues", metrics["open_issues"], "orange"),
+        ("High Severity", metrics["high_severity_issues"], "red"),
+        ("Resolved Issues", metrics["resolved_issues"], "green"),
+        ("Recurring Types", metrics["recurring_issue_types"], "purple"),
+        ("Security Flags", metrics["security_flags"], "red"),
+        ("Compliance Flags", metrics["compliance_flags"], "orange"),
+        ("Avg Resolution Time",
+         f'{metrics["average_resolution_time_minutes"]} min', "blue")
+    ]
+
+    metric_cards = "".join(
+        f"""
+        <div class="metric-card {color}">
+            <div class="metric-label">{safe(label)}</div>
+            <div class="metric-value">{safe(value)}</div>
+        </div>
         """
-
-    if not recurring_rows:
-        recurring_rows = """
-        <tr>
-            <td colspan="2">No recurring issues identified</td>
-        </tr>
-        """
-
-    security_rows = ""
-    for incident_id in report["security_concerns"]:
-        security_rows += f"""
-        <li>{incident_id} — requires investigation</li>
-        """
-
-    if not security_rows:
-        security_rows = "<li>No security concerns identified</li>"
-
-    compliance_rows = ""
-    for incident_id in report["compliance_concerns"]:
-        compliance_rows += f"""
-        <li>{incident_id} — requires human review</li>
-        """
-
-    if not compliance_rows:
-        compliance_rows = "<li>No compliance concerns identified</li>"
-
-    preventive_rows = ""
-    for action in report["preventive_actions"]:
-        preventive_rows += f"""
-        <li>{action}</li>
-        """
+        for label, value, color in cards
+    )
 
     html = f"""
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>AI Incident Intelligence Dashboard</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <style>
-        body {{
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 30px;
-            background: #f4f6f8;
-            color: #1f2937;
-        }}
+<title>AI Incident Intelligence Dashboard</title>
 
-        h1 {{
-            margin-bottom: 5px;
-        }}
+<style>
+* {{
+    box-sizing: border-box;
+}}
 
-        .subtitle {{
-            color: #6b7280;
-            margin-bottom: 25px;
-        }}
+body {{
+    margin: 0;
+    font-family: "Segoe UI", Arial, sans-serif;
+    background: #f2f5f9;
+    color: #1e293b;
+}}
 
-        .metrics {{
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 15px;
-            margin-bottom: 25px;
-        }}
+.header {{
+    background: linear-gradient(120deg, #10243d, #1e4165);
+    color: white;
+    padding: 32px 5%;
+}}
 
-        .card {{
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-        }}
+.header h1 {{
+    margin: 0;
+    font-size: 29px;
+    letter-spacing: .3px;
+}}
 
-        .card h3 {{
-            margin: 0 0 10px 0;
-            font-size: 14px;
-            color: #6b7280;
-        }}
+.header p {{
+    color: #cbd5e1;
+    margin: 9px 0 0;
+    font-size: 14px;
+}}
 
-        .value {{
-            font-size: 30px;
-            font-weight: bold;
-        }}
+.header-tag {{
+    display: inline-block;
+    margin-top: 18px;
+    padding: 7px 13px;
+    border: 1px solid #45617e;
+    border-radius: 20px;
+    font-size: 11px;
+    color: #dbeafe;
+    letter-spacing: .8px;
+}}
 
-        .section-grid {{
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-            margin-bottom: 20px;
-        }}
+.container {{
+    width: 100%;
+    max-width: 1450px;
+    margin: 0 auto;
+    padding: 28px 40px;
+}}
+}}
 
-        table {{
-            width: 100%;
-            border-collapse: collapse;
-        }}
+.section-title {{
+    font-size: 19px;
+    margin: 28px 0 17px;
+    color: #142b45;
+}}
 
-        th, td {{
-            padding: 10px;
-            border-bottom: 1px solid #e5e7eb;
-            text-align: left;
-        }}
+.metrics {{
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 17px;
+}}
 
-        th {{
-            background: #f9fafb;
-        }}
+.metric-card {{
+    background: white;
+    border-radius: 12px;
+    padding: 22px;
+    border: 1px solid #e5eaf0;
+    border-left: 4px solid #2563eb;
+    box-shadow: 0 3px 12px rgba(15,23,42,.04);
+    transition: transform .2s;
+}}
 
-        ul {{
-            padding-left: 20px;
-        }}
+.metric-card:hover {{
+    transform: translateY(-3px);
+}}
 
-        li {{
-            margin-bottom: 10px;
-        }}
+.metric-label {{
+    color: #64748b;
+    font-size: 13px;
+    font-weight: 600;
+}}
 
-        .full {{
-            margin-bottom: 20px;
-        }}
+.metric-value {{
+    font-size: 30px;
+    font-weight: 750;
+    margin-top: 13px;
+    color: #142b45;
+}}
 
-        @media (max-width: 900px) {{
-            .metrics {{
-                grid-template-columns: repeat(2, 1fr);
-            }}
+.blue {{ border-left-color: #2563eb; }}
+.orange {{ border-left-color: #f59e0b; }}
+.red {{ border-left-color: #dc2626; }}
+.green {{ border-left-color: #16a34a; }}
+.purple {{ border-left-color: #7c3aed; }}
 
-            .section-grid {{
-                grid-template-columns: 1fr;
-            }}
-        }}
-    </style>
+.section-grid {{
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-bottom: 20px;
+}}
+
+.panel {{
+    background: white;
+    padding: 23px;
+    border-radius: 12px;
+    border: 1px solid #e5eaf0;
+    box-shadow: 0 3px 12px rgba(15,23,42,.04);
+}}
+
+.panel h2 {{
+    font-size: 17px;
+    color: #142b45;
+    margin: 0 0 22px;
+}}
+
+table {{
+    width: 100%;
+    border-collapse: collapse;
+}}
+
+th, td {{
+    text-align: left;
+    padding: 13px 10px;
+    border-bottom: 1px solid #edf0f4;
+    font-size: 13px;
+}}
+
+th {{
+    color: #64748b;
+    background: #f8fafc;
+    font-weight: 600;
+}}
+
+.dot {{
+    width: 9px;
+    height: 9px;
+    display: inline-block;
+    border-radius: 50%;
+    margin-right: 8px;
+}}
+
+.bar-item {{
+    margin-bottom: 19px;
+}}
+
+.bar-heading {{
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+    font-size: 13px;
+}}
+
+.bar-track {{
+    height: 9px;
+    background: #edf1f5;
+    border-radius: 20px;
+    overflow: hidden;
+}}
+
+.bar-fill {{
+    height: 100%;
+    border-radius: 20px;
+}}
+
+ul {{
+    padding-left: 20px;
+    margin: 0;
+}}
+
+li {{
+    margin-bottom: 15px;
+    line-height: 1.6;
+    font-size: 13px;
+    color: #475569;
+}}
+
+.alert-dot, .warning-dot {{
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-right: 8px;
+}}
+
+.alert-dot {{ background: #dc2626; }}
+.warning-dot {{ background: #f59e0b; }}
+
+.summary {{
+    background: #142b45;
+    color: white;
+    border-radius: 12px;
+    padding: 25px;
+    margin-top: 20px;
+}}
+
+.summary h2 {{
+    margin-top: 0;
+}}
+
+.summary p {{
+    color: #d5e0ed;
+    font-size: 13px;
+    line-height: 1.8;
+}}
+
+.footer {{
+    text-align: center;
+    padding: 25px;
+    color: #94a3b8;
+    font-size: 12px;
+}}
+
+@media (max-width: 900px) {{
+    .metrics {{
+        grid-template-columns: repeat(2, 1fr);
+    }}
+
+    .section-grid {{
+        grid-template-columns: 1fr;
+    }}
+}}
+
+@media (max-width: 500px) {{
+    .metrics {{
+        grid-template-columns: 1fr;
+    }}
+
+    .header h1 {{
+        font-size: 23px;
+    }}
+}}
+</style>
 </head>
 
 <body>
 
-    <h1>AI Incident Intelligence Dashboard</h1>
-
-    <div class="subtitle">
-        Operational incident analytics, security and compliance intelligence
+<header class="header">
+    <h1>AI Incident Intelligence</h1>
+    <p>Security, Compliance & Operational Analytics Command Center</p>
+    <div class="header-tag">
+        INCIDENT MONITORING &bull; RISK VISIBILITY &bull; INTELLIGENCE
     </div>
+</header>
 
-    <div class="metrics">
+<main class="container">
 
-        <div class="card">
-            <h3>Total Issues</h3>
-            <div class="value">{metrics["total_issues"]}</div>
+    <h2 class="section-title">Executive Overview</h2>
+
+    <section class="metrics">
+        {metric_cards}
+    </section>
+
+    <h2 class="section-title">Incident Analytics</h2>
+
+    <section class="section-grid">
+
+        <div class="panel">
+            <h2>Severity Distribution</h2>
+            {severity_bars}
         </div>
 
-        <div class="card">
-            <h3>Open Issues</h3>
-            <div class="value">{metrics["open_issues"]}</div>
+        <div class="panel">
+            <h2>Category Distribution</h2>
+            {category_bars}
         </div>
 
-        <div class="card">
-            <h3>High Severity Issues</h3>
-            <div class="value">{metrics["high_severity_issues"]}</div>
-        </div>
+    </section>
 
-        <div class="card">
-            <h3>Resolved Issues</h3>
-            <div class="value">{metrics["resolved_issues"]}</div>
-        </div>
+    <section class="section-grid">
 
-        <div class="card">
-            <h3>Recurring Issue Types</h3>
-            <div class="value">{metrics["recurring_issue_types"]}</div>
-        </div>
-
-        <div class="card">
-            <h3>Security Flags</h3>
-            <div class="value">{metrics["security_flags"]}</div>
-        </div>
-
-        <div class="card">
-            <h3>Compliance Flags</h3>
-            <div class="value">{metrics["compliance_flags"]}</div>
-        </div>
-
-        <div class="card">
-            <h3>Avg Resolution Time</h3>
-            <div class="value">
-                {metrics["average_resolution_time_minutes"]} min
-            </div>
-        </div>
-
-    </div>
-
-    <div class="section-grid">
-
-        <div class="card">
+        <div class="panel">
             <h2>Severity Analysis</h2>
-
             <table>
-                <tr>
-                    <th>Severity</th>
-                    <th>Count</th>
-                </tr>
-
+                <tr><th>Severity</th><th>Count</th></tr>
                 {severity_rows}
             </table>
         </div>
 
-        <div class="card">
+        <div class="panel">
             <h2>Category Analysis</h2>
-
             <table>
-                <tr>
-                    <th>Category</th>
-                    <th>Count</th>
-                </tr>
-
+                <tr><th>Category</th><th>Count</th></tr>
                 {category_rows}
             </table>
         </div>
 
-    </div>
+    </section>
 
-    <div class="section-grid">
+    <h2 class="section-title">Risk & Intelligence</h2>
 
-        <div class="card">
+    <section class="section-grid">
+
+        <div class="panel">
             <h2>Recurring Issues</h2>
-
             <table>
-                <tr>
-                    <th>Issue</th>
-                    <th>Occurrences</th>
-                </tr>
-
+                <tr><th>Issue</th><th>Occurrences</th></tr>
                 {recurring_rows}
             </table>
         </div>
 
-        <div class="card">
+        <div class="panel">
             <h2>Security Concerns</h2>
-
-            <ul>
-                {security_rows}
-            </ul>
+            <ul>{security_rows}</ul>
         </div>
 
-    </div>
+    </section>
 
-    <div class="section-grid">
+    <section class="section-grid">
 
-        <div class="card">
+        <div class="panel">
             <h2>Compliance Concerns</h2>
-
-            <ul>
-                {compliance_rows}
-            </ul>
+            <ul>{compliance_rows}</ul>
         </div>
 
-        <div class="card">
+        <div class="panel">
             <h2>Preventive Actions</h2>
-
-            <ul>
-                {preventive_rows}
-            </ul>
+            <ul>{preventive_rows}</ul>
         </div>
 
-    </div>
+    </section>
 
-    <div class="card full">
+    <section class="summary">
         <h2>Management Summary</h2>
-
         <p>
-            The dashboard summarizes the current incident dataset and highlights
-            recurring issues, security concerns, potential compliance concerns,
-            and recommended preventive actions.
+            This dashboard summarizes the current incident dataset,
+            highlighting incident severity, recurring patterns,
+            potential security concerns and potential compliance concerns.
         </p>
-
         <p>
-            Compliance and security findings require appropriate human review
-            before any formal determination is made.
+            Security and compliance findings are indicators for investigation.
+            They are not formal compliance determinations and require
+            appropriate human review.
         </p>
-    </div>
+    </section>
+
+</main>
+
+<footer class="footer">
+    AI Incident Intelligence & Compliance Assistant
+    &bull; Operational Analytics Dashboard
+</footer>
 
 </body>
 </html>
 """
+
+    DASHBOARD_FILE.parent.mkdir(parents=True, exist_ok=True)
 
     with open(DASHBOARD_FILE, "w", encoding="utf-8") as file:
         file.write(html)
