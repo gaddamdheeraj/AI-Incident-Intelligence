@@ -14,3 +14,4 @@ output/incident_dashboard.html
 
 # Claude local files
 .claude/settings.local.json
+data/incidents.json
