@@ -1,104 +1,224 @@
 # AI Incident Intelligence & Compliance Assistant
 
-An AI-powered incident intelligence platform designed to analyze incidents, identify recurring issues, highlight security and compliance risks, and provide actionable insights through an automated dashboard.
+An automated incident intelligence solution that captures operational incidents from Slack, analyzes security and compliance risks, generates management insights, and publishes a live dashboard.
 
-## Overview
+**Live Dashboard:** https://gaddamdheeraj.github.io/AI-Incident-Intelligence/
 
-This project demonstrates how Slack integration, Python automation, Claude Code skills, and dashboard analytics can help teams reduce repetitive incident analysis and improve operational visibility.
+**GitHub Repository:** https://github.com/gaddamdheeraj/AI-Incident-Intelligence
 
-## Key Features
+## 1. Business Problem
 
-- **Slack Integration:** Connect incident workflows with Slack.
-- **Incident Analytics:** Analyze incident records and identify recurring issues.
-- **Security Insights:** Highlight potential security concerns for investigation.
-- **SOX & Compliance Awareness:** Identify incidents that may require compliance review.
-- **Automated Job:** Run incident analysis and generate updated reports.
-- **Interactive Dashboard:** Present incident metrics and insights in a centralized view.
-- **Automated Updates:** Use GitHub Actions to support dashboard update workflows.
-- **Testing:** Include sample incident data and automated analysis tests.
+Organizations receive many operational incident reports through communication platforms. Manually reviewing incidents, identifying recurring issues, tracking security concerns, and preparing management reports takes time.
 
-## Architecture
-Slack
-  |
-  v
-Incident Data
-  |
-  v
-Python Incident Analysis
-  |
-  v
-Automated Job
-  |
-  v
-Metrics and Reports
-  |
-  v
-Dashboard
-  |
-  v
-Operational Insights
+This project automates incident collection, analysis, reporting, and dashboard publishing to improve operational visibility and reduce repetitive work.
 
-## Technology Stack
+## 2. Key Features
 
-- Python
-- HTML
-- GitHub Actions
-- Slack integration
-- Claude Code skills
-- Data analysis and dashboard reporting
-- PowerShell automation
+- Slack-based incident capture.
+- Incident validation and duplicate prevention.
+- Automated severity and category analysis.
+- Identification of recurring incident patterns.
+- Potential security and compliance flags.
+- JSON-based incident intelligence reports.
+- Interactive HTML management dashboard.
+- Automatic GitHub Pages dashboard publishing.
+- Claude Incident Intelligence Skill for additional analytical insights.
 
-## Project Structure
+## 3. Architecture
 
-| File or Folder | Purpose |
-| `.claude/skills/incident-intelligence/` | Incident intelligence skill |
-| `.github/workflows/` | Workflow automation |
-| `data/` | Sample incident data |
-| `incident_analysis.py` | Incident analysis logic |
-| `dashboard_generator.py` | Dashboard generation |
-| `index.html` | Dashboard interface |
-| `slack_app.py` | Slack integration |
-| `run_incident_job.ps1` | Job execution script |
-| `test_incident_analysis.py` | Analysis tests |
-| `test-incidents.md` | Sample incident scenarios |
+```text
+Slack Channel
+     |
+     v
+Python Slack Bolt Application
+     |
+     v
+Incident Validation & Parsing
+     |
+     v
+data/incidents.json
+     |
+     v
+Incident Analysis Engine
+     |
+     v
+output/incident_report.json
+     |
+     v
+Dashboard Generator
+     |
+     v
+index.html
+     |
+     v
+Git Commit & Push
+     |
+     v
+GitHub Pages Live Dashboard
+     |
+     v
+Slack Confirmation
+```
 
-## Business Value
+## 4. Technology Stack
 
-- Reduces repetitive manual incident review.
-- Helps teams recognize recurring incident patterns.
-- Improves visibility into potential security and compliance concerns.
-- Supports proactive recommendations to prevent future incidents.
-- Makes incident metrics easier for teams to review.
+| Component | Technology |
+|---|---|
+| Programming | Python |
+| Slack integration | Slack Bolt, Socket Mode |
+| Data storage | JSON |
+| Analysis | Python |
+| Dashboard | HTML, CSS, JavaScript |
+| Automation | PowerShell |
+| Version control | Git, GitHub |
+| Hosting | GitHub Pages |
+| AI analysis skill | Claude Skill |
 
-## Running the Project
+## 5. Slack Incident Format
 
-1. Clone or download this repository.
-2. Install the Python dependencies required by the project.
-3. Configure the required Slack credentials securely if using Slack features.
-4. Review the sample incident data.
-5. Run the incident analysis script.
-6. Generate or refresh the dashboard using the project scripts.
-7. Run the available tests to validate the analysis logic.
+Send incidents in the configured Slack channel using this format:
 
-Check the project configuration and workflow files for the exact commands and environment requirements.
+```text
+INCIDENT-015 | High | Security | Open | Suspicious login activity detected
+```
 
-## Security Considerations
+Supported severity values:
+- Low
+- Medium
+- High
+- Critical
 
-- Store API tokens and credentials in environment variables or GitHub Secrets.
-- Never commit passwords, access tokens, or private incident information.
-- Treat automated security and compliance findings as recommendations requiring appropriate review.
-- Use authorized sample data when demonstrating the project publicly.
+Supported statuses:
+- Open
+- Resolved
 
-## Project Status
+The application validates incoming records, rejects duplicate incident IDs, stores valid incidents, and triggers the reporting workflow.
 
-Developed as a practical portfolio project exploring incident intelligence, AI-assisted analysis, workflow automation, and operational dashboards.
+## 6. Automated Workflow
 
-## Author
+1. The Slack application listens for incident messages.
+2. It validates the incident format and required fields.
+3. Valid incidents are stored in the JSON data file.
+4. The Python analysis engine calculates incident metrics.
+5. The dashboard generator creates an updated HTML dashboard.
+6. The generated dashboard is copied to `index.html`.
+7. Git publishes the updated dashboard to GitHub Pages.
+8. Slack receives a confirmation message.
 
-**Dheeraj Reddy**
+**Note:** The Slack listener runs locally and must remain active to capture new messages. The published dashboard remains accessible when the listener is stopped.
 
-GitHub: [gaddamdheeraj](https://github.com/gaddamdheeraj)
+## 7. Claude Incident Intelligence Skill
 
----
+A separate Claude Skill analyzes incident records and produces structured intelligence, including:
 
-*This project is intended for demonstration and learning. Actual compliance and security decisions require appropriate human review.*
+- Incident summaries.
+- Severity and category analysis.
+- Recurring issue patterns.
+- Potential security concerns.
+- Potential compliance concerns.
+- Operational risks.
+- Preventive recommendations.
+- Management summaries.
+
+**Current implementation:** The Claude Skill has been tested separately using the incident dataset. It is not automatically invoked by the Slack application.
+
+## 8. Project Structure
+
+```text
+AI-Incident-Intelligence/
+│
+├── .claude/
+│   └── skills/
+│       └── incident-intelligence/
+│           └── SKILL.md
+│
+├── .github/
+│   └── workflows/
+│       └── dashboard.yml
+│
+├── data/
+│   └── incidents.json
+│
+├── output/
+│   ├── incident_report.json
+│   ├── incident_job.log
+│   └── incident_dashboard.html
+│
+├── dashboard_generator.py
+├── incident_analysis.py
+├── run_incident_job.ps1
+├── slack_app.py
+├── test_incident_analysis.py
+├── README.md
+└── index.html
+```
+
+## 9. Setup and Execution
+
+### Prerequisites
+
+- Python 3
+- Git
+- Slack application with required bot and app permissions
+- GitHub repository configured for GitHub Pages
+
+### Install dependencies
+
+```powershell
+python -m pip install slack-bolt python-dotenv
+```
+
+### Configure environment variables
+
+Create a `.env` file in the project root:
+
+```text
+SLACK_BOT_TOKEN=your_bot_token
+SLACK_APP_TOKEN=your_app_token
+```
+
+Never commit `.env` or expose actual tokens.
+
+### Start the Slack application
+
+```powershell
+python slack_app.py
+```
+
+Keep the application running to receive Slack incidents.
+
+### Run the analysis job manually
+
+```powershell
+.\run_incident_job.ps1
+```
+
+## 10. Security and Reliability
+
+- Credentials are stored in environment variables.
+- `.env` is excluded through `.gitignore`.
+- Raw incident data is not intentionally published to GitHub.
+- Duplicate incident IDs are rejected.
+- Incident fields are validated before processing.
+- Security and compliance indicators are treated as potential concerns requiring human review, not proof of a breach or violation.
+
+## 11. Current Limitations and Future Enhancements
+
+Current limitations:
+- The Slack listener depends on a locally running application.
+- Incident data is stored in a JSON file.
+- Claude Skill analysis is separate from the automated Slack workflow.
+
+Potential enhancements:
+- Deploy the Slack listener to a persistent cloud environment.
+- Integrate Claude analysis into the automated workflow.
+- Introduce a database for scalable incident storage.
+- Add role-based access and authentication to the dashboard.
+- Introduce time-based incident trend analytics when reliable timestamps are available.
+- Add notifications for critical incidents.
+
+## 12. Project Outcome
+
+The solution demonstrates an end-to-end incident reporting workflow connecting Slack, Python automation, structured incident analysis, dashboard generation, GitHub publishing, and AI-assisted analytical reporting.
+
+The goal is to improve incident visibility, reduce repetitive reporting work, and help teams identify operational risks proactively.
