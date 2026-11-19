@@ -122,35 +122,35 @@ A separate Claude Skill analyzes incident records and produces structured intell
 
 **Current implementation:** The Claude Skill has been tested separately using the incident dataset. It is not automatically invoked by the Slack application.
 
-## 8. Project Structure
+## ## 8. Project Structure
 
 ```text
 AI-Incident-Intelligence/
-│
-├── .claude/
-│   └── skills/
-│       └── incident-intelligence/
-│           └── SKILL.md
-│
-├── .github/
-│   └── workflows/
-│       └── dashboard.yml
-│
-├── data/
-│   └── incidents.json
-│
-├── output/
-│   ├── incident_report.json
-│   ├── incident_job.log
-│   └── incident_dashboard.html
-│
-├── dashboard_generator.py
-├── incident_analysis.py
-├── run_incident_job.ps1
-├── slack_app.py
-├── test_incident_analysis.py
-├── README.md
-└── index.html
+|
+|-- .claude/
+|   |-- skills/
+|       |-- incident-intelligence/
+|           |-- SKILL.md
+|
+|-- .github/
+|   |-- workflows/
+|       |-- dashboard.yml
+|
+|-- data/
+|   |-- incidents.json
+|
+|-- output/
+|   |-- incident_report.json
+|   |-- incident_job.log
+|   |-- incident_dashboard.html
+|
+|-- dashboard_generator.py
+|-- incident_analysis.py
+|-- run_incident_job.ps1
+|-- slack_app.py
+|-- test_incident_analysis.py
+|-- README.md
+|-- index.html
 ```
 
 ## 9. Setup and Execution
